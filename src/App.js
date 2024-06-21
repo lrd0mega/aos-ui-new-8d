@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Fragment } from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -6,19 +6,22 @@ import Link from '@mui/material/Link';
 import ProTip from './ProTip';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
-import CardHeader from "@mui/material/CardHeader";
+import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 import Button from '@mui/material/Button';
 import { ConnectButton, useActiveAddress } from "arweave-wallet-kit";
+import { connect, createDataItemSigner } from '@permaweb/aoconnect';
+import AoConnect from './AoConnect.js';
+import { Terminal } from 'xterm';
+import { FitAddon } from 'xterm-addon-fit';
+import { Readline } from 'xterm-readline';
+import 'xterm/css/xterm.css';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import 'xterm/css/xterm.css';
-import AoConnect from './AoConnect';
 
 function Copyright() {
   return (
@@ -44,6 +47,7 @@ export default function App() {
   const terminalRef = useRef(null);
   const terminal = useRef(null);
   const fitAddon = useRef(null);
+  const readline = useRef(null);
 
   const activeAddress = useActiveAddress();
 
@@ -51,33 +55,28 @@ export default function App() {
     if (terminalRef.current) {
       terminal.current = new Terminal();
       fitAddon.current = new FitAddon();
+      readline.current = new Readline();
       terminal.current.loadAddon(fitAddon.current);
       terminal.current.open(terminalRef.current);
       fitAddon.current.fit();
       terminal.current.writeln('Welcome to the AI Network Platform');
+      terminal.current.prompt = () => {
+        terminal.current.write('\r\n$ ');
+      };
+      terminal.current.prompt();
+      readline.current.attach(terminal.current);
 
-      terminal.current.onKey(({ key, domEvent }) => {
-        if (domEvent.key === 'Enter') {
-          handleEvaluate();
-        } else {
-          terminal.current.write(key);
+      readline.current.on('line', async (input) => {
+        try {
+          const result = await AoConnect.evaluate(connectProcessId, input);
+          terminal.current.writeln(result || 'No output');
+        } catch (error) {
+          terminal.current.writeln(`Error: ${error.message}`);
         }
+        terminal.current.prompt();
       });
     }
-  }, []);
-
-  const handleEvaluate = async () => {
-    const input = terminal.current.buffer.active.getLine(terminal.current.buffer.active.cursorY - 1)?.translateToString(false).trim();
-    if (input) {
-      terminal.current.write('\r\n');
-      try {
-        const result = await AoConnect.evaluate(connectProcessId, input);
-        terminal.current.writeln(result);
-      } catch (error) {
-        terminal.current.writeln(`Error: ${error.message}`);
-      }
-    }
-  };
+  }, [connectProcessId]);
 
   const handleClose = () => setShowEditor(false);
   const handleOpen = () => setShowEditor(true);
