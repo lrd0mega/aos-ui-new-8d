@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, Fragment } from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -6,7 +6,7 @@ import Link from '@mui/material/Link';
 import ProTip from './ProTip';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
-import CardHeader from "@mui/material/CardHeader";
+import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -15,6 +15,10 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import { Terminal } from 'xterm';
+import { FitAddon } from 'xterm-addon-fit';
+import 'xterm/css/xterm.css';
+import AoConnect from './AoConnect';
 
 function Copyright() {
   return (
@@ -39,6 +43,10 @@ export default function App() {
 
   const handleClose = () => setShowEditor(false);
   const handleOpen = () => setShowEditor(true);
+
+  useEffect(() => {
+    // Initialize terminal here if needed
+  }, []);
 
   return (
     <Container maxWidth="lg">
@@ -90,6 +98,7 @@ export default function App() {
           </Grid>
         </Grid>
         <Box mt={5}>
+          <AoConnect />
           <ProTip />
           <Copyright />
         </Box>
