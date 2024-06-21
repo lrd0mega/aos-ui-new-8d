@@ -7,10 +7,10 @@ import ProTip from './ProTip';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import CardHeader from "@mui/material/CardHeader";
-import CardContent from '@mui/material/CardContent';
+import CardContent from "@mui/material/CardContent";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import { ConnectButton } from "arweave-wallet-kit";
+import { ConnectButton, useActiveAddress } from "arweave-wallet-kit";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -43,6 +43,8 @@ export default function App() {
 
   const terminalRef = useRef(null);
 
+  const activeAddress = useActiveAddress();
+
   useEffect(() => {
     if (terminalRef.current) {
       const terminal = new Terminal();
@@ -56,6 +58,23 @@ export default function App() {
 
   const handleClose = () => setShowEditor(false);
   const handleOpen = () => setShowEditor(true);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const formJson = Object.fromEntries(formData.entries());
+    const text = formJson.text;
+    console.log(text);
+    setLoadText(text);
+
+    try {
+      const result = await AoConnect.evaluate(connectProcessId, text);
+      terminalRef.current && terminalRef.current.write(result);
+    } catch (error) {
+      console.error(error);
+    }
+    handleClose();
+  };
 
   return (
     <Container maxWidth="lg">
@@ -72,6 +91,7 @@ export default function App() {
               <CardHeader title="Connect Wallet" />
               <CardContent>
                 <ConnectButton />
+                {activeAddress && <Typography>{`Connected: ${activeAddress}`}</Typography>}
               </CardContent>
             </Card>
           </Grid>
@@ -99,7 +119,7 @@ export default function App() {
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <Button type="submit">Load</Button>
+                    <Button type="submit" onClick={handleSubmit}>Load</Button>
                   </DialogActions>
                 </Dialog>
               </CardContent>
@@ -108,7 +128,6 @@ export default function App() {
         </Grid>
         <Box mt={5}>
           <div ref={terminalRef} style={{ height: '400px', width: '100%', backgroundColor: '#000' }} />
-          <AoConnect />
           <ProTip />
           <Copyright />
         </Box>
