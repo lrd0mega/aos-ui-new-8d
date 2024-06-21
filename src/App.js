@@ -1,25 +1,33 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, Fragment } from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import ProTip from './ProTip';
-import Card from '@mui/material/Card';
-import Grid from '@mui/material/Grid';
-import CardHeader from '@mui/material/CardHeader';
-import CardContent from '@mui/material/CardContent';
-import TextField from '@mui/material/TextField';
+
+// ** React Imports
+
+// ** MUI Imports
+import Card from '@mui/material/Card'
+import Grid from '@mui/material/Grid'
+
+import CardHeader from "@mui/material/CardHeader";
+import CardContent from "@mui/material/CardContent";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 import Button from '@mui/material/Button';
-import { ConnectButton, useActiveAddress } from "arweave-wallet-kit";
-import { connect, createDataItemSigner } from '@permaweb/aoconnect';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import { Readline } from 'xterm-readline';
+import { ConnectButton, useActiveAddress, ArweaveWalletKit } from "arweave-wallet-kit";
+import { connect, createDataItemSigner } from '@permaweb/aoconnect'
+import AoConnect from './AoConnect.js'
+import { Terminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
+import { Readline } from "xterm-readline";
 import 'xterm/css/xterm.css';
-import AoConnect from './AoConnect';
+
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 function Copyright() {
@@ -36,17 +44,18 @@ function Copyright() {
 }
 
 export default function App() {
-  const [processName, setProcessName] = useState("default");
-  const [connecting, setConnecting] = useState(false);
-  const [connectProcessId, setConnectProcessId] = useState("");
-  const [connectedAddress, setConnectedAddress] = useState("");
-  const [loadText, setLoadText] = useState("");
-  const [showEditor, setShowEditor] = useState(false);
+  const [processName, setProcessName] = useState("default")
+  const [connecting, setConnecting] = useState(false)
+  const [connectProcessId, setConnectProcessId] = useState("")
+  const [contentedAddress, setContentedAddress] = useState("")
+  const [loadText, setLoadText] = useState("")
+
+  const activeAddress = useActiveAddress();
+
   const terminalRef = useRef(null);
   const terminal = useRef(null);
   const fitAddon = useRef(null);
   const readline = useRef(null);
-  const activeAddress = useActiveAddress();
 
   useEffect(() => {
     if (terminalRef.current) {
