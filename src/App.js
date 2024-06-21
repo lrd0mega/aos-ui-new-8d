@@ -7,7 +7,7 @@ import ProTip from './ProTip';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import CardHeader from "@mui/material/CardHeader";
-import CardContent from "@mui/material/CardContent";
+import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { ConnectButton, useActiveAddress } from "arweave-wallet-kit";
@@ -42,19 +42,42 @@ export default function App() {
   const [showEditor, setShowEditor] = useState(false);
 
   const terminalRef = useRef(null);
+  const terminal = useRef(null);
+  const fitAddon = useRef(null);
 
   const activeAddress = useActiveAddress();
 
   useEffect(() => {
     if (terminalRef.current) {
-      const terminal = new Terminal();
-      const fitAddon = new FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.open(terminalRef.current);
-      fitAddon.fit();
-      terminal.writeln('Welcome to the AI Network Platform');
+      terminal.current = new Terminal();
+      fitAddon.current = new FitAddon();
+      terminal.current.loadAddon(fitAddon.current);
+      terminal.current.open(terminalRef.current);
+      fitAddon.current.fit();
+      terminal.current.writeln('Welcome to the AI Network Platform');
+
+      terminal.current.onKey(({ key, domEvent }) => {
+        if (domEvent.key === 'Enter') {
+          handleEvaluate();
+        } else {
+          terminal.current.write(key);
+        }
+      });
     }
   }, []);
+
+  const handleEvaluate = async () => {
+    const input = terminal.current.buffer.active.getLine(terminal.current.buffer.active.cursorY - 1)?.translateToString(false).trim();
+    if (input) {
+      terminal.current.write('\r\n');
+      try {
+        const result = await AoConnect.evaluate(connectProcessId, input);
+        terminal.current.writeln(result);
+      } catch (error) {
+        terminal.current.writeln(`Error: ${error.message}`);
+      }
+    }
+  };
 
   const handleClose = () => setShowEditor(false);
   const handleOpen = () => setShowEditor(true);
@@ -69,7 +92,7 @@ export default function App() {
 
     try {
       const result = await AoConnect.evaluate(connectProcessId, text);
-      terminalRef.current && terminalRef.current.write(result);
+      terminal.current && terminal.current.write(result);
     } catch (error) {
       console.error(error);
     }
