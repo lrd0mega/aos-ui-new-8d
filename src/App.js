@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, Fragment } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -6,7 +6,7 @@ import Link from '@mui/material/Link';
 import ProTip from './ProTip';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
-import CardHeader from '@mui/material/CardHeader';
+import CardHeader from "@mui/material/CardHeader";
 import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -41,12 +41,21 @@ export default function App() {
   const [loadText, setLoadText] = useState("");
   const [showEditor, setShowEditor] = useState(false);
 
-  const handleClose = () => setShowEditor(false);
-  const handleOpen = () => setShowEditor(true);
+  const terminalRef = useRef(null);
 
   useEffect(() => {
-    // Initialize terminal here if needed
+    if (terminalRef.current) {
+      const terminal = new Terminal();
+      const fitAddon = new FitAddon();
+      terminal.loadAddon(fitAddon);
+      terminal.open(terminalRef.current);
+      fitAddon.fit();
+      terminal.writeln('Welcome to the AI Network Platform');
+    }
   }, []);
+
+  const handleClose = () => setShowEditor(false);
+  const handleOpen = () => setShowEditor(true);
 
   return (
     <Container maxWidth="lg">
@@ -98,6 +107,7 @@ export default function App() {
           </Grid>
         </Grid>
         <Box mt={5}>
+          <div ref={terminalRef} style={{ height: '400px', width: '100%', backgroundColor: '#000' }} />
           <AoConnect />
           <ProTip />
           <Copyright />
